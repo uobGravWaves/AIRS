@@ -7,7 +7,7 @@ sumCutoff = 0.5;
 sizeCutoff = 150;
 SmoothSize = [5, 5, 1];
 blurCutoff = 0.3;
-wavelengthCutoff =80;
+wavelengthCutoff = 50;
 
 Sigma = zeros(size(IN.k));
 %now, for each variable used in the test...
@@ -57,11 +57,19 @@ penulti(penulti~=0) = 1;
 plask = imbinarize(penulti);
 wavelength = (1./(sqrt(IN.k_2dp1.^2 + IN.l_2dp1.^2)));
 for d = 1:size(plask, 3)
-    plask(:,:,d) = bwmorph(plask(:,:,d), 'majority');
-    plask(:,:,d) = bwmorph(plask(:,:,d), 'thin', 2);
-    plask(:,:,d) = bwperim(plask(:,:,d), 4);
-    plask(:,:,d) = edge_linking(plask(:,:,d));
-    plask(:,:,d) = bwmorph(plask(:,:,d), 'thin', 2);
+    
+    plask(:,:,d) = imopen(plask(:,:,d), strel([2 2]));
+%     plask(:,:,d) = bwmorph(plask(:,:,d), 'thin', 2);
+%     distance = sqrt((x2-x1)^2+(y2-y1)^2)
+%     spacing = 0.4; % pixels between dots (to make sure we don't skip any)
+%     numPoints = distance/spacing;
+%     xLine = linspace(x1, x2, numPoints);
+%     yLine = linspace(y1, y2, numPoints);
+%     rows = round(yLine);
+%     columns = round(xLine);
+%     for k = 1 : length(xLine)
+%         edgeImage(rows(k), columns(k)) = true;
+%     end
 %     plask(:,:,d) = bwmorph(plask(:,:,d), 'clean');
 %     plask(:,:,d) = bwmorph(plask(:,:,d), 'diag');
 
@@ -77,19 +85,19 @@ for d = 1:size(plask, 3)
     peep(peep<0) = NaN;
     peep = fillmissing(peep, "nearest");
     peep(peep == 0) = 0;
-%     peep(1,:) = 0; peep(end,:) = 0; peep(:,1) = 0; peep(:,end) = 0;
-    adj = isAdjacent(pop);
-
-    for one = 1:size(adj, 1)
-        labloc = find(adj(one, :));
-        for dwa = 1:length(labloc)
-            two = labloc(dwa);
-%             abs(mean(wavelength(peep == one), 'all', 'omitnan') - mean(wavelength(peep == two), 'all', 'omitnan'));
-            if (abs(mean(wavelength(peep == one), 'all', 'omitnan') - mean(wavelength(peep == two), 'all', 'omitnan')) < wavelengthCutoff)
-                peep(peep == two) = one;
-            end
-        end
-    end
+    peep(1,:) = 0; peep(end,:) = 0; peep(:,1) = 0; peep(:,end) = 0;
+%     adj = isAdjacent(pop);
+% 
+%     for one = 1:size(adj, 1)
+%         labloc = find(adj(one, :));
+%         for dwa = 1:length(labloc)
+%             two = labloc(dwa);
+% %             abs(mean(wavelength(peep == one), 'all', 'omitnan') - mean(wavelength(peep == two), 'all', 'omitnan'));
+%             if (abs(mean(wavelength(peep == one), 'all', 'omitnan') - mean(wavelength(peep == two), 'all', 'omitnan')) < wavelengthCutoff)
+%                 peep(peep == two) = one;
+%             end
+%         end
+%     end
     pop(:,:,d) = peep;
 end
 % pop(Mask == 0) = NaN;
