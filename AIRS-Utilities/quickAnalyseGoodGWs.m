@@ -1,15 +1,15 @@
+function [ST, AIRS] = quickAnalyseGoodGWs(folder, year, month, days, granule)
 %Code to run the goodGWs and analyse easily
 
-clear
-
 %Where you store (locally) the goodGWs
-folder = 'C:\Users\Peter\OneDrive - University of Bath\Desktop\BathBits\gitPROJECTS\AIRS\goodGWs\granules\';
+% folder = 'C:\Users\Peter\OneDrive - University of Bath\Desktop\BathBits\gitPROJECTS\AIRS\goodGWs\granules\';
+folder = fullfile(folder, 'AIRS\goodGWs\granules\');
 
 %Date and granule you want
-year = 2008;
-month = 1;
-days = 127;
-granule = 57;
+% year = 2008;
+% month = 1;
+% days = 127;
+% granule = 57;
 
 %Just to convert for the day of the year, if months are being used
 x = datetime([year, month, days]);
