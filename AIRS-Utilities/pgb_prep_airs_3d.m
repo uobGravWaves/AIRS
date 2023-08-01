@@ -228,11 +228,11 @@ Input = options
 %% load the file, or check the struct is valid
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if numel(fieldnames(Input.InputStruct)) == 0;
+if numel(fieldnames(Input.InputStruct)) == 0
       %no struct supplied - get the data
       [Err,Airs,FilePath] = pgb_get_airs_granule(Input.RelDataDir,Input.DateNum,Input.GranuleId, Input.StdFolders);
       
-      if Err ~= 0;
+      if Err ~= 0
         Error = 1;
         ErrorInfo = ['Problem finding granule ',FilePath];
         return
@@ -243,10 +243,10 @@ if numel(fieldnames(Input.InputStruct)) == 0;
     else
     
       %test the validity of the structure, and use it is valid
-      if Input.NoISCheck == 0;
+      if Input.NoISCheck == 0
         [Airs,Check.Error,Check.ErrorInfo] = check_input_struct(Input);
         
-        if Check.Error ~= 0;
+        if Check.Error ~= 0
           %oh dear. exit.
           Error = Check.Error;
           ErrorInfo = Check.ErrorInfo;
@@ -268,14 +268,14 @@ end
 
 
 %convert time to Matlab time
-if Input.KeepOldTime == 1;
+if Input.KeepOldTime == 1
   %make a copy of the original time, if wanted
   Airs.OriginalTime = Airs.l1_time;
 end
 Airs.l1_time = datenum(2000,1,1,0,0,Airs.l1_time);
 
 
-if Input.LoadOnly == 1;
+if Input.LoadOnly == 1
   %we only wanted to load the data. end programme now
   return
 end
@@ -313,7 +313,7 @@ if Input.VerticallyInterpolate
   
   %find middle level. Force this to be a level, not an average of two others
   Middle = median(Airs.ret_z);
-  if ~ismember(Middle,Airs.ret_z); 
+  if ~ismember(Middle,Airs.ret_z)
     [~,zidx] = min(abs(Airs.ret_z -Middle));
     Middle = Airs.ret_z(zidx); clear zidx;
   end
@@ -353,7 +353,7 @@ end
 %smooth the data
 try
   Airs.ret_temp = smoothn(Airs.ret_temp,Input.PreSmooth);
-catch;
+catch
   Error =1;
   ErrorInfo = 'Unidentified problem pre-smoothing data';
   return
@@ -362,7 +362,7 @@ end
 
 
 try
-  if Input.NoDetrend ~= 1;
+  if Input.NoDetrend ~= 1
     [Airs.Tp,Airs.BG] = airs_4dp_detrend(Airs.ret_temp,1,Input.DetrendMethod);
   end
 catch
@@ -382,7 +382,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 try
-  if Input.DayNightFlag == 1;
+  if Input.DayNightFlag == 1
     Airs.DayNightFlag = which_airs_retrieval(Airs.l1_lon,Airs.l1_lat,Airs.l1_time);
   end
 catch
@@ -390,7 +390,7 @@ catch
   %check if lat/lon/time are the same size 
   if  numel(Airs.l1_time) == numel(Airs.l1_lon) ...
    && numel(Airs.l1_time) == numel(Airs.l1_lat) ...
-   && numel(Airs.l1_time) == numel(Airs.ret_temp(:,:,1));
+   && numel(Airs.l1_time) == numel(Airs.ret_temp(:,:,1))
      MinorErrorInfo{end+1} = 'Unidentified problem computing day/night flags';
   else
      MinorErrorInfo{end+1} = 'To compute day/night flags, l1_lon, l1_lat and l1_time must all be the same size as each other and as ret_temp.';
@@ -491,7 +491,7 @@ function [Tp,BG] = airs_4dp_detrend(T,Dim,Method)
   %but retain the option of doing it the old way just in case
   if ~exist('Method','var'); Method = 2; end
    
-  if Method == 1; 
+  if Method == 1
     %"classical" way, with all error checking using built-in
 
     for iRow=1:1:size(BG,2)
@@ -499,7 +499,7 @@ function [Tp,BG] = airs_4dp_detrend(T,Dim,Method)
       BG(:,iRow) = p;
     end
     
-  elseif Method == 2; 
+  elseif Method == 2
     %fast way - most stuff stripped out. Seems to work...
     %see comment by Matt Tearle on
     %https://uk.mathworks.com/matlabcentral/answers/1836-multiple-use-of-polyfit-could-i-get-it-faster
@@ -511,7 +511,9 @@ function [Tp,BG] = airs_4dp_detrend(T,Dim,Method)
     for k = 1:m
       M = repmat(x(:,k),1,n+1);
       M = bsxfun(@power,M,0:n);
+      warning('off', 'MATLAB:rankDeficientMatrix')
       p(:,k) = M\T2(:,k);
+      warning('on', 'MATLAB:rankDeficientMatrix')
     end
     p = flip(p,1);   
     for iRow=1:1:size(BG,2); BG(:,iRow) = polyval(squeeze(p(:,iRow)),1:1:size(BG,1)); end
@@ -540,7 +542,7 @@ return
 % expect t to be XTxAT or XTxATxZ
 
 
-function  [Airs,Spacing] = regularise_airs(Airs,Spacing,Interpolant,Extrapolant);
+function  [Airs,Spacing] = regularise_airs(Airs,Spacing,Interpolant,Extrapolant)
 
 
 %rename vars to save typing
@@ -562,13 +564,13 @@ dAT = Spacing(2);
 
 
 
-if dXT > 0; 
+if dXT > 0
   NewXT = linspace(0,AcrossTrackSize,dXT);
 else
   NewXT = 0:abs(dXT):AcrossTrackSize;
 end
 
-if dAT > 0; 
+if dAT > 0
   NewAT = linspace(0,AlongTrackSize,dAT);
 else
   NewAT = 0:abs(dAT):AlongTrackSize;
@@ -700,7 +702,7 @@ function [Airs,Error,ErrorInfo] = check_input_struct(Input)
   C = isfield(Input.InputStruct,'l1_lat'); 
   D = isfield(Input.InputStruct,'ret_temp');   
   
-  if  A+B+C+D ~= 4;
+  if  A+B+C+D ~= 4
     Error = 1;
     ErrorInfo = 'Input data structure invalid';
     return
@@ -708,7 +710,7 @@ function [Airs,Error,ErrorInfo] = check_input_struct(Input)
   
   %check the temperature data are formatted correctly
   E = size(Input.InputStruct.ret_temp);
-  if E(1) ~= 27 || E(2) ~= 90;
+  if E(1) ~= 27 || E(2) ~= 90
     Error = 1;
     ErrorInfo = 'Error in ret_temp: should be 27 x 90 x N';
     return
@@ -719,7 +721,7 @@ function [Airs,Error,ErrorInfo] = check_input_struct(Input)
   %style guide provides a (microscopic) speed boost over a shorter command
   if size(Input.InputStruct.l1_time,1) ~= 90 ...
   || size(Input.InputStruct.l1_lat ,1) ~= 90 ...
-  || size(Input.InputStruct.l1_lon ,1) ~= 90;  
+  || size(Input.InputStruct.l1_lon ,1) ~= 90
     Error = 1;
     ErrorInfo = 'Error in geolocation arrays - should all be 90 x N';
     return
@@ -1040,9 +1042,9 @@ function Y = smoothn(X,sz,filt,std)
 %     $Revision: 1.1 $
 %     $State: Exp $
 
-if nargin == 2;
+if nargin == 2
   filt = 'b';
-elseif nargin == 3;
+elseif nargin == 3
   std = 0.65;
 elseif nargin>4 || nargin<2
   error('Wrong number of input arguments.');
@@ -1126,14 +1128,14 @@ function argout = gridnd(argin)
 nin = length(argin);
 nout = nin;
 
-for i=nin:-1:1;
+for i=nin:-1:1
   argin{i} = full(argin{i}); % Make sure everything is full
   siz(i) = numel(argin{i});
 end
 if length(siz)<nout, siz = [siz ones(1,nout-length(siz))]; end
 
 argout = [];
-for i=1:nout;
+for i=1:nout
   x = argin{i}(:); % Extract and reshape as a vector.
   s = siz; s(i) = []; % Remove i-th dimension
   x = reshape(x(:,ones(1,prod(s))),[length(x) s]); % Expand x
