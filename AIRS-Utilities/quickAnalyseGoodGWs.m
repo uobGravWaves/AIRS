@@ -34,6 +34,7 @@ rmdir(fullfile(folder, str(year), sprintf('%03i',days)))
 rmdir(fullfile(folder, str(year)))
 
 %The classic S-Transform, use whatever params you want
-[ST, Airs] = gwanalyse_airs_3d(AIRS, 'MaxWaveLength', [10000 10000 100], 'MinWaveLength', [25 25 6], 'TwoDPlusOne', true, 'NScales', 300);
+[ST, AIRS] = gwanalyse_airs_3d(AIRS, 'MaxWaveLength', [3000 3000 99e99], 'MinWaveLength', [25 25 6], 'TwoDPlusOne', true, 'NScales', 300);
+
 
 
