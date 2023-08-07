@@ -5,6 +5,7 @@
 [bigLon, bigLat] = mapmake;
 
 plottingST = nightBinned;
+%Fix whatever's up with m, k, and l
 plottingST = fixM(plottingST);
 
 mask = plottingST.mask;

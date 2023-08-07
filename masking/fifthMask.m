@@ -1,24 +1,20 @@
-function Mask = fifthMask(ST)
+function fin = fifthMask(IN, sumCutoff, sizeCutoff, SmoothSize, blurCutoff, wavelengthCutoff, Vars, Derivs)
 
-%Only use one frame of ST (for testing)
-IN = ST;
-%Use 2dp1 variables
-% IN.k_2dp1 = IN.k_2dp1(:,:,10);
-% IN.l_2dp1 = IN.l_2dp1(:,:,10);
-IN.k_2dp1 = IN.F1;
-IN.l_2dp1 = IN.F2;
-Vars = {'k_2dp1', 'l_2dp1'};
-Derivs = 2;
-%Assign cutoffs
-sumCutoff = 0.5;
-sizeCutoff = 150;
-SmoothSize = [5, 5];
-blurCutoff = 0.3;
-wavelengthCutoff = 100;
+IN.k = IN.k(:,:,10);
+IN.l = IN.l(:,:,10);
+IN.kh = IN.kh(:,:,10);
+% Vars = {'k', 'l'};
+% Derivs = 2;
+% %Assign cutoffs
+% sumCutoff = 0.5;
+% sizeCutoff = 150;
+% SmoothSize = [5, 5];
+% blurCutoff = 0.3;
+% wavelengthCutoff = 30;
 
 %First (binary) mask
 %This still works pretty much perfectly
-Sigma = zeros(size(IN.k_2dp1));
+Sigma = zeros(size(IN.k));
 %now, for each variable used in the test...
 for iVar=1:1:numel(Vars)
     %extract the variable from the input S-Transform structure and normalise it into the range -1 to 1
@@ -58,3 +54,87 @@ Mask = Mask2;
 Mask = smoothn(Mask,SmoothSize);
 Mask(Mask > blurCutoff) = true;
 Mask(Mask~=1) = 0;
+
+%Start of second mask
+maskFill = imfill(Mask, 4, 'holes');
+
+%Cleaning things (only really useful for testing but its cleaner)
+penulti = Sigma.*Mask;
+% penulti(penulti<0.7*sumCutoff) = 0;
+% penulti(penulti~=0) = 1;
+
+plask = imbinarize(penulti);
+wavelength = (1./IN.kh);
+
+%Can't do the bwmorphs on 3d things
+for d = 1:size(plask, 3)
+
+    %This tidies and finds the perimiters between regions
+    %*a region is an area with slightly different wave parameters*
+    %Not just the perimiter of the entire object
+%     plask(:,:,d) = bwmorph(plask(:,:,d), 'majority');
+    plask(:,:,d) = bwmorph(plask(:,:,d), 'thin', 2);
+    plask(:,:,d) = bwperim(plask(:,:,d), 4);
+    %(funky funky function)
+    plask(:,:,d) = edge_linking(plask(:,:,d));
+    plask(:,:,d) = bwmorph(plask(:,:,d), 'thin', 2);
+
+    %Labelling each region
+    [B, label] = bwboundaries(plask(:,:,d), 8);
+    
+    %Getting rid of the borders between regions
+    pesp = plask(:,:,d).*100;
+    peep = label - pesp;
+    peep(peep<0) = NaN;
+    peep = fillmissing(peep, "nearest");
+    peep(peep == 0) = 0;
+    plaplap = peep;
+    %Find which regions are next to each other
+    
+    peep = downer(peep);
+    adj = isAdjacent(peep);
+    adj = triu(adj);
+
+    simpWavelength = zeros(size(wavelength));
+    for one = 0:size(adj, 1)
+        first = wavelength(peep == one);
+        [counts,centers] = hist(first);
+        [~, I] = max(counts);
+        simpWavelength(peep == one) = centers(I);
+    end
+    simpWavelength(maskFill == 0) = 1000;
+    
+    %Uses the adjacency matrix to find which regions are next to each other
+    for one = 1:size(adj, 1)
+        labloc = find(adj(one, :));
+        for dwa = 1:length(labloc)
+            two = labloc(dwa);
+            
+            moFirst = simpWavelength(peep == one);
+            moSecond = simpWavelength(peep == two);
+            if abs(moFirst(1) - moSecond(1)) < wavelengthCutoff              
+                plaplap(plaplap == two) = mean(plaplap(peep == one)); 
+            end
+        end
+    end
+    pop(:,:,d) = plaplap;
+end
+
+
+pop = downer(pop);
+
+for iZ=1:1:size(pop,3)
+  for iM = 1:max(pop(:,:,iZ), [], 'all')
+      number = nnz(pop(pop == iM));
+      if number < sizeCutoff/2
+          pop(pop == iM) = NaN;
+      end
+  end
+end 
+
+fin = fillmissing(pop, 'nearest');
+fin = downer(fin);
+
+
+
+
