@@ -34,7 +34,7 @@ AIRS = pgb_prep_airs_3d(datenum(year, month, days), granule, 'FullDataDir', fold
 % rmdir(fullfile(folder, str(year)))
 
 %The classic S-Transform, use whatever params you want
-[ST, AIRS] = gwanalyse_airs_3d(AIRS, 'MaxWaveLength', [500 500 99e99], 'MinWaveLength', [25 25 6], 'TwoDPlusOne', true, 'NScales', 300);
+[ST, AIRS] = gwanalyse_airs_3d(AIRS, 'MaxWaveLength', [700 700 99e99], 'MinWaveLength', [25 25 6], 'TwoDPlusOne', true, 'NScales', 300);
 
 
 
