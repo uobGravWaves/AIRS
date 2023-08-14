@@ -1,7 +1,7 @@
 %%
 folder = 'C:\Users\Peter\OneDrive - University of Bath\Desktop\BathBits\gitPROJECTS\';
 
-[ST, AIRS] = quanalGoodGWs(folder, 2007, 1, 13, 122);
+[ST, AIRS] = quanalGoodGWs(folder, 2008, 1, 127, 57);
 %%
 axkm = linarray(1, ST.point_spacing(1), 90);
 alkm = linarray(1, ST.point_spacing(2), 135);

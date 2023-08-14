@@ -6,9 +6,9 @@ IN = ST;
 %Use 2dp1 variables
 % IN.k_2dp1 = IN.k_2dp1(:,:,10);
 % IN.l_2dp1 = IN.l_2dp1(:,:,10);
-IN.k = IN.k(:,:,10);
-IN.l = IN.l(:,:,10);
-IN.kh = IN.kh(:,:,10);
+IN.k = IN.k(:,:,8);
+IN.l = IN.l(:,:,8);
+IN.kh = IN.kh(:,:,8);
 Vars = {'k', 'l'};
 Derivs = 2;
 %Assign cutoffs
@@ -83,7 +83,50 @@ for d = 1:size(plask, 3)
     plask(:,:,d) = bwperim(plask(:,:,d), 4);
     %(funky funky function)
     plask(:,:,d) = edge_linking(plask(:,:,d));
+    plask(:,:,d) = edge_linking(plask(:,:,d));
     plask(:,:,d) = bwmorph(plask(:,:,d), 'thin', 2);
+    temp = plask(:,:,d);
+    for side = 1:4
+        switch side
+            case 1
+                [g, ind] = find(temp(1, :));
+                dfr = diff(ind);
+                dco = find(dfr<200);
+                for run = 1:length(dco)
+                    for ran = 1:dfr(run)-1
+                        temp(1, ind(run)+ran) = 1;
+                    end
+                end
+            case 2
+                 [g, ind] = find(temp(end, :));
+                dfr = diff(ind);
+                dco = find(dfr<200);
+                for run = 1:length(dco)
+                    for ran = 1:dfr(run)-1
+                        temp(end, ind(run)+ran) = 1;
+                    end
+                end
+            case 3
+                 [g, ind] = find(temp(:, end));
+                dfr = diff(g);
+                dco = find(dfr<200);
+                for run = 1:length(dco)
+                    for ran = 1:dfr(run)-1
+                        temp(ind(run)+ran, end) = 1;
+                    end
+                end
+            case 4
+                 [g, ind] = find(temp(:, 1));
+                dfr = diff(g);
+                dco = find(dfr<200);
+                for run = 1:length(dco)
+                    for ran = 1:dfr(run)-1
+                        temp(ind(run)+ran, 1) = 1;
+                    end
+                end
+        end
+    end
+    plask(:,:,d) = reshape(temp, size(plask));
 
     %Labelling each region
     [B, label] = bwboundaries(plask(:,:,d), 8);
@@ -115,7 +158,7 @@ for d = 1:size(plask, 3)
         simpWavelength(peep == one) = centers(I);
 %         simpWavelength(peep == one) = (mode(first(find(first ~= mode(first, 'all'))), 'all') + mode(first, 'all'))/2;
     end
-    simpWavelength(maskFill == 0) = 1000;
+    simpWavelength(maskFill == 0) = 99e99;
     
     %Uses the adjacency matrix to find which regions are next to each other
     for one = 1:size(adj, 1)
@@ -140,7 +183,7 @@ for d = 1:size(plask, 3)
             moSecond = simpWavelength(peep == two);
 %             moFirst = (mode(first(find(first ~= mode(first, 'all'))), 'all') + mode(first, 'all'))/2;
 %             moSecond = (mode(second(find(second ~= mode(second, 'all'))), 'all') + mode(second, 'all'))/2;
-            abs(moFirst(1) - moSecond(1))
+%             abs(moFirst(1) - moSecond(1))
             if abs(moFirst(1) - moSecond(1)) < wavelengthCutoff
                 
 %                 plaplap(peep == two) = one;

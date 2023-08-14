@@ -1,8 +1,8 @@
 function fin = fifthMask(IN, sumCutoff, sizeCutoff, SmoothSize, blurCutoff, wavelengthCutoff, Vars, Derivs)
 
-IN.k = IN.k(:,:,10);
-IN.l = IN.l(:,:,10);
-IN.kh = IN.kh(:,:,10);
+% IN.k = IN.k(:,:,10);
+% IN.l = IN.l(:,:,10);
+% IN.kh = IN.kh(:,:,10);
 % Vars = {'k', 'l'};
 % Derivs = 2;
 % %Assign cutoffs
@@ -77,7 +77,50 @@ for d = 1:size(plask, 3)
     plask(:,:,d) = bwperim(plask(:,:,d), 4);
     %(funky funky function)
     plask(:,:,d) = edge_linking(plask(:,:,d));
+    plask(:,:,d) = edge_linking(plask(:,:,d));
     plask(:,:,d) = bwmorph(plask(:,:,d), 'thin', 2);
+    temp = plask(:,:,d);
+    for side = 1:4
+        switch side
+            case 1
+                [g, ind] = find(temp(1, :));
+                dfr = diff(ind);
+                dco = find(dfr<200);
+                for run = 1:length(dco)
+                    for ran = 1:dfr(run)-1
+                        temp(1, ind(run)+ran) = 1;
+                    end
+                end
+            case 2
+                 [g, ind] = find(temp(end, :));
+                dfr = diff(ind);
+                dco = find(dfr<200);
+                for run = 1:length(dco)
+                    for ran = 1:dfr(run)-1
+                        temp(end, ind(run)+ran) = 1;
+                    end
+                end
+            case 3
+                 [g, ind] = find(temp(:, end));
+                dfr = diff(g);
+                dco = find(dfr<200);
+                for run = 1:length(dco)
+                    for ran = 1:dfr(run)-1
+                        temp(ind(run)+ran, end) = 1;
+                    end
+                end
+            case 4
+                 [g, ind] = find(temp(:, 1));
+                dfr = diff(g);
+                dco = find(dfr<200);
+                for run = 1:length(dco)
+                    for ran = 1:dfr(run)-1
+                        temp(ind(run)+ran, 1) = 1;
+                    end
+                end
+        end
+    end
+    plask(:,:,d) = reshape(temp, size(plask));
 
     %Labelling each region
     [B, label] = bwboundaries(plask(:,:,d), 8);
@@ -95,25 +138,64 @@ for d = 1:size(plask, 3)
     adj = isAdjacent(peep);
     adj = triu(adj);
 
+    %Just for testing, to see what regions have what wavelengths
+%     pip = downer(peep);
+%     for f = 1:max(pip, [], 'all')
+%         pip(pip == f) = mean(wavelength(pip == f), 'all', 'omitnan');
+%     end
+
     simpWavelength = zeros(size(wavelength));
     for one = 0:size(adj, 1)
         first = wavelength(peep == one);
         [counts,centers] = hist(first);
         [~, I] = max(counts);
         simpWavelength(peep == one) = centers(I);
+%         simpWavelength(peep == one) = (mode(first(find(first ~= mode(first, 'all'))), 'all') + mode(first, 'all'))/2;
     end
-    simpWavelength(maskFill == 0) = 1000;
+    simpWavelength(maskFill == 0) = 99e99;
     
     %Uses the adjacency matrix to find which regions are next to each other
     for one = 1:size(adj, 1)
         labloc = find(adj(one, :));
         for dwa = 1:length(labloc)
             two = labloc(dwa);
+%                     shat(plask)
+%                     hold on
+%                     hat = NaN(size(wavelength));
+%                     hat(peep == one) = peep(peep == one);
+%                     hat(peep == two) = peep(peep == two);
+%                     shat(hat)
+%                     pause(0.1)
+%             disp([one, two])
+            %See if the difference in wavelength between adjacent regions
+            %is less than the cutoff
+            %If it is, set the label of the second region to be the same as
+            %the first region, thereby making a larger region
+            %Stuff goes wrong here
             
             moFirst = simpWavelength(peep == one);
             moSecond = simpWavelength(peep == two);
-            if abs(moFirst(1) - moSecond(1)) < wavelengthCutoff              
-                plaplap(plaplap == two) = mean(plaplap(peep == one)); 
+%             moFirst = (mode(first(find(first ~= mode(first, 'all'))), 'all') + mode(first, 'all'))/2;
+%             moSecond = (mode(second(find(second ~= mode(second, 'all'))), 'all') + mode(second, 'all'))/2;
+%             abs(moFirst(1) - moSecond(1))
+            if abs(moFirst(1) - moSecond(1)) < wavelengthCutoff
+                
+%                 plaplap(peep == two) = one;
+                plaplap(plaplap == two) = mean(plaplap(peep == one));
+%                 simpWavelength(peep == two) = mean(simpWavelength(plaplap == one));
+                
+%             if (abs(mean(wavelength(peep == one), 'all', 'omitnan') - mean(wavelength(peep == two), 'all', 'omitnan')) < wavelengthCutoff)
+% %                 disp('found')
+%                 shat(peep)
+%                 hold on
+%                 hat = NaN(size(wavelength));
+%                 hat(peep == one) = wavelength(peep == one);
+%                 hat(peep == two) = wavelength(peep == two);
+%                 shat(hat)
+%                 pause(0.01)
+% %                 close(gcf)
+%                 abs(mean(wavelength(peep == one), 'all', 'omitnan') - mean(wavelength(peep == two), 'all', 'omitnan'))
+%                 plaplap(peep == two) = one;                
             end
         end
     end
@@ -122,6 +204,8 @@ end
 
 
 pop = downer(pop);
+%See how many regions are left, should be around 3 for this example
+% max(pop, [], 'all');
 
 for iZ=1:1:size(pop,3)
   for iM = 1:max(pop(:,:,iZ), [], 'all')
@@ -134,7 +218,4 @@ end
 
 fin = fillmissing(pop, 'nearest');
 fin = downer(fin);
-
-
-
-
+% max(fin, [], 'all')
