@@ -2,13 +2,13 @@
 % clearvars -except ST
 
 %Only use one frame of ST (for testing)
-IN = ST;
+IN = thing;
 %Use 2dp1 variables
 % IN.k_2dp1 = IN.k_2dp1(:,:,10);
 % IN.l_2dp1 = IN.l_2dp1(:,:,10);
-IN.k = IN.k(:,:,8);
-IN.l = IN.l(:,:,8);
-IN.kh = IN.kh(:,:,8);
+% IN.k = IN.k(:,:,8);
+% IN.l = IN.l(:,:,8);
+% IN.kh = IN.kh(:,:,8);
 Vars = {'k', 'l'};
 Derivs = 2;
 %Assign cutoffs

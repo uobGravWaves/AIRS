@@ -11,12 +11,12 @@ plottingST = fixM(plottingST);
 mask = plottingST.mask;
 ampcutoff = plottingST.A;
 
-variable1 = plottingST.k;
+variable1 = plottingST.A;
 variable2 = plottingST.l;
 
-toplot = 1./((variable1.^2 + variable2.^2).^0.5);
+% toplot = 1./((variable1.^2 + variable2.^2).^0.5);
 % toplot = atan2(variable2, variable1);
-% toplot = variable1;
+toplot = variable1;
 temp1 = toplot;
 temp2 = toplot;
 %For the mask
@@ -29,7 +29,7 @@ ampedVar = squeeze(mean(temp2, 1, 'omitnan'));
 
 
 color = 'BuPu';
-colim = [300 1300];
+colim = [1.6 5];
 % colim = "auto";
 
 fig = figure;
@@ -73,7 +73,7 @@ clim(colim)
 originalSize2 = get(two, 'Position');
 title('Masked')
 cb = colorbar;
-cb.Position = [0.1, 0];
+% cb.Position = [0.1, 0];
 cb.Label.String  = 'km';
 cb.Label.Rotation = 270;
 cb.Label.Position = [3.8, range(cb.Limits)/2 + min(cb.Limits)];

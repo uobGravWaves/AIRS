@@ -1,4 +1,4 @@
-function fin = fifthMask(IN, sumCutoff, sizeCutoff, SmoothSize, blurCutoff, wavelengthCutoff, Vars, Derivs)
+function [fin, maskFill] = fifthMask(IN, sumCutoff, sizeCutoff, SmoothSize, blurCutoff, wavelengthCutoff, Vars, Derivs)
 
 % IN.k = IN.k(:,:,10);
 % IN.l = IN.l(:,:,10);

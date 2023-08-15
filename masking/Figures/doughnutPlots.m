@@ -31,7 +31,7 @@ toplot = imgaussfilt(toplot,[2 2]);
 toplot(toplot<2) = NaN;
 % toplot = log(toplot);
 %%
-% figure
+figure
 
 m_proj('stereographic','lat',-90,'long',30,'radius',70);
 ax1 = axes;
@@ -43,12 +43,12 @@ hold on
 axes(ax1)
 s = m_surf(bigLon, bigLat, toplot);shading flat
 
-% alfa = abs(toplot);
-% alfa = (alfa ./ 2);
-% alfa(alfa >= 1) = 1;
-% s.AlphaData = alfa;
-% s.EdgeColor = 'none';
-% s.FaceAlpha = 'interp';
+alfa = abs(toplot);
+alfa = (alfa ./ 5);
+alfa(alfa >= 1) = 1;
+s.AlphaData = alfa;
+s.EdgeColor = 'none';
+s.FaceAlpha = 'interp';
 s.FaceColor = 'interp';
 % s.AlphaData = s.CData;
 % alphamap(ax1, 'vup')
@@ -74,10 +74,10 @@ clim(ax2,[-7000 3000]);
 % m_grid('linestyle','none','tickdir','out','linewidth',3);
 
 axes(ax3)
-hold on
+% hold on
 % [ch, c] = m_contour3(bigLon,bigLat,toplot, 3);
-% c.ZData = c.ZData - mean(toplot, 'all', 'omitnan');
-% c.ZData = c.ZData - 2;
+% % c.ZData = c.ZData - mean(toplot, 'all', 'omitnan');
+% % c.ZData = c.ZData - 2;
 % c.LineWidth = 1;
 % c.EdgeColor = 'black';
 % clabel(ch,c,'labelspacing',500,'fontsize',10,'color','black','fontweight','normal');
@@ -87,9 +87,12 @@ hold on
 h = get(gcf, 'Children');
 set(gcf, 'Children', [h(3), h(1), h(2)])
 axes(ax1)
-% ax1.ZLim = [2, 7];
-% ax2.ZLim = [2, 7];
-% ax3.ZLim = [2, 7];
+ax1.XLim = [-2, 2];
+ax1.YLim = [-2, 2];
+ax2.XLim = [-2, 2];
+ax2.YLim = [-2, 2];
+ax3.XLim = [-2, 2];
+ax3.YLim = [-2, 2];
 ax1.Color = 'none';
 ax2.Color = 'none';
 ax3.Color = 'none';
@@ -115,5 +118,5 @@ ax2.InnerPosition(2) = ax2.InnerPosition(2) + 0.03;
 ax3.Visible = "off";
 ax3.ZLim = [0, 200];
 
-
+zoom(gcf, 1);
 %%
